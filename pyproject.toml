@@ -1,0 +1,52 @@
+[project]
+name = "books-recommendation-system"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Roman Khamrin",email = "rekhamrin@edu.hse.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "pandas (>=2.3.3,<3.0.0)",
+    "scikit-learn (>=1.8.0,<2.0.0)",
+    "numpy (>=2.3.5,<3.0.0)",
+    "scipy (>=1.16.3,<2.0.0)",
+    "torch (>=2.9.1,<3.0.0)",
+    "pytorch-lightning (>=2.6.0,<3.0.0)",
+    "dvc (>=3.64.2,<4.0.0)",
+    "hydra-core (>=1.3.2,<2.0.0)",
+    "mlflow (>=3.7.0,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pre-commit (>=4.5.0,<5.0.0)",
+    "ruff (>=0.14.9,<0.15.0)",
+    "prettier (>=0.0.7,<0.0.8)"
+]
+
+[tool.ruff]
+line-length = 100
+format = { docstring-code-format = true }
+
+[tool.ruff.lint]
+select = [
+    # isort
+    "I",
+    # pycodestyle
+    "E", "W",
+    # Pyflakes
+    "F"
+]
+
+pycodestyle = { max-doc-length = 105 }
+
+# [tool.ruff.lint.per-file-ignores]
+# "__init__.py" = ["E402"]
+# "**/{tests,docs,tools}/*" = ["E402"]
