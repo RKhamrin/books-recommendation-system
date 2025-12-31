@@ -1,10 +1,11 @@
-import pandas as pd 
+import pandas as pd
 import numpy as np
 
-import torch 
+import torch
 from collections import defaultdict
 from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
+
 
 # 1. Dataset для BERT4Rec (masked item prediction)
 class BERT4RecDataset(Dataset):
@@ -13,27 +14,26 @@ class BERT4RecDataset(Dataset):
         self.max_len = max_len
         self.mask_prob = mask_prob
         self.n_items = n_items
-        self.mask_token = n_items  # [MASK] token
-        
+        self.mask_token = n_items
+
     def __len__(self):
         return len(self.sequences)
-    
+
     def __getitem__(self, idx):
-        seq = self.sequences[idx][:self.max_len]
-        seq = seq + [0] * (self.max_len - len(seq))  # padding
-        
-        # Masked Item Prediction (BERT-style)
+        seq = self.sequences[idx][: self.max_len]
+        seq = seq + [0] * (self.max_len - len(seq))
+
         input_seq = seq.copy()
-        labels = [-100] * self.max_len  # ignore_index для CrossEntropy
-        
+        labels = [-100] * self.max_len
+
         for i in range(len(seq)):
             if np.random.rand() < self.mask_prob and seq[i] != 0:
                 input_seq[i] = self.mask_token
                 labels[i] = seq[i]
-        
+
         return {
-            'input_ids': torch.tensor(input_seq, dtype=torch.long),
-            'labels': torch.tensor(labels, dtype=torch.long)
+            "input_ids": torch.tensor(input_seq, dtype=torch.long),
+            "labels": torch.tensor(labels, dtype=torch.long),
         }
 
 
@@ -46,35 +46,39 @@ class BERT4RecDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.max_len = max_len
         self.mask_prob = mask_prob
-        self.n_items = None  # Будет вычислено в setup()
+        self.n_items = None
         self.sequences = {}
-    
-    def setup(self, stage=None):
-        # Создание последовательностей
-        for split, df in [('train', self.train_df), ('valid', self.valid_df), ('test', self.test_df)]:
+
+    def setup(self):
+        for split, df in [
+            ("train", self.train_df),
+            ("valid", self.valid_df),
+            ("test", self.test_df),
+        ]:
             user_seqs = defaultdict(list)
             for _, row in df.iterrows():
-                user_seqs[int(row['user_id'])].append(int(row['item_id']))
+                user_seqs[int(row["user_id"])].append(int(row["item_id"]))
             self.sequences[split] = [seq for seq in user_seqs.values()]
-        
-        # Подсчет n_items
+
         all_items = set()
         for seqs in self.sequences.values():
             for seq in seqs:
                 all_items.update(seq)
         self.n_items = max(all_items) + 1 if all_items else 1
-        
-        print(f"✅ n_items определено: {self.n_items}")
-    
+
     def train_dataloader(self):
         return DataLoader(
-            BERT4RecDataset(self.sequences['train'], self.max_len, self.mask_prob, self.n_items),
-            batch_size=self.batch_size, shuffle=True, num_workers=2, pin_memory=True
+            BERT4RecDataset(self.sequences["train"], self.max_len, self.mask_prob, self.n_items),
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=2,
+            pin_memory=True,
         )
-    
+
     def val_dataloader(self):
         return DataLoader(
-            BERT4RecDataset(self.sequences['valid'], self.max_len, self.mask_prob, self.n_items),
-            batch_size=self.batch_size, num_workers=2, pin_memory=True
+            BERT4RecDataset(self.sequences["valid"], self.max_len, self.mask_prob, self.n_items),
+            batch_size=self.batch_size,
+            num_workers=2,
+            pin_memory=True,
         )
-    

@@ -1,0 +1,12 @@
+md5: 2630e15094a30c95b37d9a7d783f6232
+frozen: true
+deps:
+- checksum: '"7ab62f5bddcc82f47cbed0615530805a"'
+  size: 30682276
+  hash: md5
+  path: https://books-data.storage.yandexcloud.net/ratings.csv
+outs:
+- md5: 7ab62f5bddcc82f47cbed0615530805a
+  size: 30682276
+  hash: md5
+  path: ratings.csv
